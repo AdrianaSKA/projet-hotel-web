@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Hotel } from '@/types/hotel';
@@ -13,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { Card } from "@/components/ui/card";
 import { Matcher } from 'react-day-picker';
+import { useCart } from '@/contexts/CartContext';
 
 
 
@@ -26,7 +26,7 @@ interface HotelCardProps {
 }
 
 const HotelCard = ({ hotel, initialDates, initialGuests, isLoggedIn, onAuthRequired }: HotelCardProps) => {
-  
+
   const [isFavorite, setIsFavorite] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [checkIn, setCheckIn] = useState<Date | undefined>(initialDates?.checkIn);
@@ -36,16 +36,25 @@ const HotelCard = ({ hotel, initialDates, initialGuests, isLoggedIn, onAuthRequi
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [showConfirmButton, setShowConfirmButton] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
 
   
+  const { addBooking } = useCart();
+
+
   const totalNights = checkIn && checkOut 
     ? Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)) 
     : 0;
   
+  
 
-  const subtotal = hotel.price * totalNights;
+  const roomCount = initialGuests ? initialGuests.length : 1;
+  const subtotal = hotel.price * totalNights * roomCount;
   const discount = (subtotal * hotel.discount) / 100;
   const total = subtotal - discount;
+
 
 
   const handleBooking = () => {
@@ -55,27 +64,107 @@ const HotelCard = ({ hotel, initialDates, initialGuests, isLoggedIn, onAuthRequi
     }
     setIsBookingOpen(true);
   };
-  
 
-  const bookHotel = () => {
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailError("Por favor, ingresa un correo electrónico válido");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  };
+  
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    if (value === '' || /^[0-9\b]+$/.test(value)) {
+      setPhone(value);
+      setPhoneError("");
+    } else {
+      setPhoneError("");
+    }
+  };
+  
+  const validateBookingForm = () => {
+    let isValid = true;
+    
     if (!name || !email || !phone) {
       toast({
         title: "Error al reservar",
         description: "Por favor, completa todos los campos",
         variant: "destructive"
       });
-      return;
+      isValid = false;
     }
+    
+    if (!validateEmail(email)) {
+      isValid = false;
+    }
+    
+    if (phone && !/^[0-9]+$/.test(phone)) {
+      setPhoneError("");
+      isValid = false;
+    }
+    
+    if (!checkIn || !checkOut) {
+      toast({
+        title: "Error al reservar",
+        description: "Selecciona fechas de entrada y salida",
+        variant: "destructive"
+      });
+      isValid = false;
+    }
+    
+    return isValid;
+  };
+
+
+
+  const bookHotel = () => {
+    if (!validateBookingForm()) return;
+    
+    
+    setShowConfirmButton(true);
+  };
+
+
+    const confirmBooking = () => {
+    
+    const bookingData = {
+      id: `booking-${Date.now()}`,
+      hotel,
+      checkIn: checkIn!,
+      checkOut: checkOut!,
+      guests: {
+        adults,
+        children
+      },
+      guestInfo: {
+        name,
+        email,
+        phone
+      },
+      price: parseFloat(total.toFixed(2)),
+      nights: totalNights,
+      rooms: roomCount, 
+      timestamp: new Date()
+    };
+    
+    
+    addBooking(bookingData);
 
 
     toast({
-      title: "Reserva realizada",
-      description: `¡Felicidades ${name}! Tu reserva en ${hotel.name} ha sido confirmada.`,
+      title: "Reserva añadida al carrito",
+      description: `Tu reserva en ${hotel.name} ha sido añadida al carrito de compras.`,
     });
-    setIsBookingOpen(false);
-  };
   
 
+    setIsBookingOpen(false);
+    
+    setShowConfirmButton(false);
+  };
 
   return (
     <Card className="mb-4 overflow-hidden">
@@ -133,14 +222,16 @@ const HotelCard = ({ hotel, initialDates, initialGuests, isLoggedIn, onAuthRequi
               </p>
               <div className="flex items-end gap-2">
                 <p className="text-2xl font-bold text-hotel-blue">
-                  ${hotel.price}
+                  ${hotel.price.toFixed(2)}
                 </p>
                 {hotel.discount > 0 && (
-                  <p className="text-sm text-gray-500 line-through">${hotel.price + (hotel.price * hotel.discount / 100)}</p>
+                  <p className="text-sm text-gray-500 line-through">${(hotel.price + (hotel.price * hotel.discount / 100)).toFixed(2)}</p>
                 )}
               </div>
               {totalNights > 0 && (
-                <p className="text-sm text-green-500">Total: ${total} ({totalNights} noches)</p>
+                <p className="text-sm text-green-500">
+                  Total: ${total.toFixed(2)} ({totalNights} noches{roomCount > 1 ? `, ${roomCount} habitaciones` : ''})
+                </p>
               )}
             </div>
             <Button 
@@ -154,7 +245,10 @@ const HotelCard = ({ hotel, initialDates, initialGuests, isLoggedIn, onAuthRequi
       </div>
       
       
-      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+      <Dialog open={isBookingOpen} onOpenChange={(open) => {
+        setIsBookingOpen(open);
+        if (!open) setShowConfirmButton(false); 
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center">Reserva en {hotel.name}</DialogTitle>
@@ -220,14 +314,21 @@ const HotelCard = ({ hotel, initialDates, initialGuests, isLoggedIn, onAuthRequi
                         ((date: Date) => 
                           date < new Date(new Date().setHours(0, 0, 0, 0)) || 
                           (checkIn && date <= checkIn)
-                        ) as Matcher
-}
+                        ) as Matcher}
                       initialFocus
                       className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
               </div>
+            </div>
+
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">
+                Habitaciones
+              </Label>
+              <div className="col-span-3">{roomCount}</div>
             </div>
 
             
@@ -241,25 +342,59 @@ const HotelCard = ({ hotel, initialDates, initialGuests, isLoggedIn, onAuthRequi
               <Label htmlFor="email" className="text-right">
                 Email
               </Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
+              <div className="col-span-3">
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (e.target.value) validateEmail(e.target.value);
+                  }} 
+                  className={emailError ? "border-red-500" : ""}
+                  onBlur={() => validateEmail(email)}
+                />
+                {emailError && <p className="text-sm text-red-500 mt-1">{emailError}</p>}
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="phone" className="text-right">
                 Teléfono
               </Label>
-              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" />
+              <div className="col-span-3">
+                <Input 
+                  id="phone" 
+                  type="tel" 
+                  value={phone} 
+                  onChange={handlePhoneChange}
+                  className={phoneError ? "border-red-500" : ""}
+                  
+                />
+                {phoneError && <p className="text-sm text-red-500 mt-1">{phoneError}</p>}
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">
                 Total
               </Label>
-              <div className="col-span-3 font-bold text-xl text-hotel-blue">${total}</div>
+              <div className="col-span-3 font-bold text-xl text-hotel-blue">
+                ${total.toFixed(2)}
+                <span className="text-sm font-normal text-gray-500 ml-2">
+                  ({totalNights} noches{roomCount > 1 ? `, ${roomCount} habitaciones` : ''})
+                </span>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" onClick={bookHotel}>
-              Confirmar reserva
-            </Button>
+          <DialogFooter className="flex flex-col gap-2">
+            {!showConfirmButton ? (
+              <Button type="button" onClick={bookHotel} className="w-full">
+                Continuar
+              </Button>
+            ) : (
+              <Button type="button" onClick={confirmBooking} className="w-full bg-green-600 hover:bg-green-700">
+                Confirmar reserva y añadir al carrito
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
