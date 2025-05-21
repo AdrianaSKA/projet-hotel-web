@@ -59,11 +59,7 @@ const FeaturedDestinations = () => {
           ))}
         </div>
         
-        <div className="text-center mt-8">
-          <a href="#" className="text-hotel-blue hover:underline font-medium">
-            Ver todos los destinos
-          </a>
-        </div>
+
       </div>
     </div>
   );

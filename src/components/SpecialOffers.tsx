@@ -46,9 +46,6 @@ const SpecialOffers = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-hotel-dark">
             Ofertas especiales
           </h2>
-          <a href="#" className="text-hotel-blue hover:underline font-medium">
-            Ver todas
-          </a>
         </div>
         
         <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'grid-cols-1 md:grid-cols-3 gap-4'}`}>

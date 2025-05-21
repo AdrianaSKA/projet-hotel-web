@@ -68,14 +68,7 @@ const SearchDetailsBar = ({
             </div>
           </div>
           
-          {!isMobile && (
-            <div className="mt-3 md:mt-0">
-              <Button variant="outline" className="border-hotel-blue text-hotel-blue">
-                <MapPin className="mr-1" size={16} />
-                Ver en mapa
-              </Button>
-            </div>
-          )}
+          
         </div>
       </div>
     </div>

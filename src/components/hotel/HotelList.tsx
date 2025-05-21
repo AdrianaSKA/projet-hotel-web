@@ -33,13 +33,6 @@ const HotelList = ({ filteredHotels, isMobile, initialDates, initialGuests }: Ho
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
         <div className="text-sm">Ordenar por: <span className="font-medium">Recomendados</span></div>
-        
-        {isMobile && (
-          <Button variant="outline" size="sm" className="text-sm">
-            <MapPin size={16} className="mr-1" />
-            Mapa
-          </Button>
-        )}
       </div>
       
       {filteredHotels.length > 0 ? (
@@ -57,15 +50,6 @@ const HotelList = ({ filteredHotels, isMobile, initialDates, initialGuests }: Ho
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <p className="text-lg font-medium mb-2">No se encontraron hoteles</p>
           <p className="text-gray-500">Prueba a cambiar tus filtros de búsqueda</p>
-        </div>
-      )}
-      
-      
-      {filteredHotels.length > 5 && (
-        <div className="mt-4 text-center">
-          <Button variant="outline" className="border-hotel-blue text-hotel-blue">
-            Cargar más resultados
-          </Button>
         </div>
       )}
       

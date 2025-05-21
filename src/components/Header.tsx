@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Globe, Menu, X, User, BedDouble, Building2, Briefcase,Heart,ChevronDown,UserPlus,LogOut} from 'lucide-react';
+import { Globe, Menu, X, User, Home,Building,Phone,Briefcase,ChevronDown,UserPlus,LogOut} from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { CartDropdown } from './cart/CartDropdown';
-import {DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuLabel,DropdownMenuSeparator,DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import { DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuLabel,DropdownMenuSeparator,DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -27,10 +27,10 @@ const Header = () => {
     <header className="w-full bg-white border-b border-hotel-light-gray sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
-          
+
           <Link to="/" className="flex items-center">
-            <BedDouble size={24} className="text-hotel-blue mr-2" />
-            <span className="font-bold text-xl text-hotel-blue">Alojateya</span>
+            <Building size={24} className="text-hotel-blue mr-2" />
+            <span className="font-bold text-xl text-hotel-blue">AlojateYa</span>
           </Link>
           
 
@@ -44,34 +44,32 @@ const Header = () => {
             </button>
           )}
           
-          
+
           {!isMobile && (
             <div className="flex items-center space-x-6">
               <nav className="flex space-x-6">
-                <Link to="/" className="text-hotel-dark hover:text-hotel-blue">
-                  Inicio
+                <Link to="/" className="flex items-center gap-1 text-hotel-dark hover:text-hotel-blue">
+                  <Home size={18} />
+                  <span>Inicio</span>
                 </Link>
-                <Link to="/hotels" className="text-hotel-dark hover:text-hotel-blue">
-                  Hoteles
+                <Link to="/hotels" className="flex items-center gap-1 text-hotel-dark hover:text-hotel-blue">
+                  <Building size={18} />
+                  <span>Hoteles</span>
                 </Link>
-                <a href="#" className="text-hotel-dark hover:text-hotel-blue">
-                  Ofertas
-                </a>
-                <a href="#" className="text-hotel-dark hover:text-hotel-blue">
-                  Contacto
-                </a>
+                <Link to="/contact" className="flex items-center gap-1 text-hotel-dark hover:text-hotel-blue">
+                  <Phone size={18} />
+                  <span>Contacto</span>
+                </Link>
               </nav>
               
               <div className="flex items-center space-x-2">
-                
+
                 {isLoggedIn && <CartDropdown />}
                 
-                
-                <Button variant="ghost" size="icon">
-                  <Globe size={20} />
-                </Button>
+
                 
                 
+
                 {isLoggedIn ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -84,12 +82,8 @@ const Header = () => {
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>Perfil</DropdownMenuItem>
-                      <DropdownMenuItem>Mis reservas</DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Heart size={16} className="mr-2" />
-                        Favoritos
-                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/profile')}>Perfil</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/my-reservations')}>Mis reservas</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500">
                         <LogOut size={16} className="mr-2" />
@@ -119,26 +113,34 @@ const Header = () => {
         </div>
       </div>
       
-      
+
       {isMobile && isMenuOpen && (
         <div className="bg-white w-full absolute top-full left-0 border-b border-hotel-light-gray">
           <nav className="flex flex-col p-4">
-            <Link to="/" className="py-2 text-hotel-dark hover:text-hotel-blue">
-              Inicio
+            <Link to="/" className="py-2 text-hotel-dark hover:text-hotel-blue flex items-center gap-2">
+              <Home size={18} />
+              <span>Inicio</span>
             </Link>
-            <Link to="/hotels" className="py-2 text-hotel-dark hover:text-hotel-blue">
-              Hoteles
+            <Link to="/hotels" className="py-2 text-hotel-dark hover:text-hotel-blue flex items-center gap-2">
+              <Building size={18} />
+              <span>Hoteles</span>
             </Link>
-            <a href="#" className="py-2 text-hotel-dark hover:text-hotel-blue">
-              Ofertas
-            </a>
-            <a href="#" className="py-2 text-hotel-dark hover:text-hotel-blue">
-              Contacto
-            </a>
+            <Link to="/contact" className="py-2 text-hotel-dark hover:text-hotel-blue flex items-center gap-2">
+              <Phone size={18} />
+              <span>Contacto</span>
+            </Link>
             
             {isLoggedIn && (
               <>
                 <hr className="my-2" />
+                <Link to="/profile" className="py-2 text-hotel-dark hover:text-hotel-blue flex items-center gap-2">
+                  <User size={18} />
+                  <span>Perfil</span>
+                </Link>
+                <Link to="/my-reservations" className="py-2 text-hotel-dark hover:text-hotel-blue flex items-center gap-2">
+                  <Briefcase size={18} />
+                  <span>Mis reservas</span>
+                </Link>
                 <div className="flex items-center py-2">
                   <CartDropdown />
                   <span className="ml-2">Carrito</span>

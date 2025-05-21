@@ -56,15 +56,6 @@ const Footer = () => {
     return (
       <footer className="bg-hotel-dark text-white pt-8 pb-16">
         <div className="container mx-auto px-4">
-          <div className="mb-6">
-            <div className="border border-gray-600 rounded-lg p-3 flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <Globe size={18} className="mr-2" />
-                <span>Español (ES)</span>
-              </div>
-              <ChevronDown size={18} />
-            </div>
-          </div>
           
           <Accordion type="single" collapsible className="mb-6">
             {footerLinks.map((section, index) => (
@@ -90,9 +81,9 @@ const Footer = () => {
           <div className="text-center text-xs text-white/60 space-y-4">
             <p>© 2025 Alojateya.com</p>
             <div className="flex flex-wrap justify-center gap-3">
-              <a href="#" className="hover:text-white">Privacidad</a>
-              <a href="#" className="hover:text-white">Términos y condiciones</a>
-              <a href="#" className="hover:text-white">Cookies</a>
+              <p>Privacidad</p>
+              <p>Términos y condiciones</p>
+              <p>Cookies</p>
             </div>
           </div>
         </div>
@@ -122,19 +113,13 @@ const Footer = () => {
         </div>
         
         <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-gray-700">
-          <div className="flex items-center mb-4 md:mb-0">
-            <div className="border border-gray-600 rounded-lg p-2 flex items-center">
-              <Globe size={18} className="mr-2" />
-              <span>Español (ES)</span>
-              <ChevronDown size={18} className="ml-2" />
-            </div>
-          </div>
+          <div className="flex items-center mb-4 md:mb-0"/>
           
           <div className="flex flex-wrap justify-center gap-6">
-            <a href="#" className="text-white/80 hover:text-white">Privacidad</a>
-            <a href="#" className="text-white/80 hover:text-white">Términos y condiciones</a>
-            <a href="#" className="text-white/80 hover:text-white">Acerca de</a>
-            <a href="#" className="text-white/80 hover:text-white">Cookies</a>
+            <p>Privacidad</p>
+            <p>Términos y condiciones</p>
+            <p>Acerca de</p>
+            <p>Cookies</p>
           </div>
           
           <div className="mt-4 md:mt-0 text-white/60 text-sm">

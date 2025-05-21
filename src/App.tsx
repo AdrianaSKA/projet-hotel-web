@@ -11,6 +11,9 @@ import Hotels from "./pages/Hotels";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Cart from "./pages/Cart";
+import Contact from "./pages/Contact";
+import MyReservations from "./pages/MyReservations";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +31,9 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/cart" element={<Cart />} />
-              
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/my-reservations" element={<MyReservations />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </BrowserRouter>
         </CartProvider>

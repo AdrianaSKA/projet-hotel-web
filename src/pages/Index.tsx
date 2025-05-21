@@ -1,5 +1,7 @@
 
-
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/use-toast';
 import Header from '@/components/Header';
 import HeroSearch from '@/components/HeroSearch';
 import FeaturedDestinations from '@/components/FeaturedDestinations';
@@ -7,6 +9,20 @@ import SpecialOffers from '@/components/SpecialOffers';
 import Footer from '@/components/Footer';
 
 const Index = () => {
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+
+  const handleRegisterClick = () => {
+    if (isLoggedIn) {
+      toast({
+        title: "Ya has iniciado sesión",
+        description: "Ya tienes una sesión activa en AlojateYa",
+      });
+    } else {
+      navigate('/register');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -16,7 +32,7 @@ const Index = () => {
         <FeaturedDestinations />
         <SpecialOffers />
         
-        
+
         <div className="py-12 bg-white">
           <div className="container mx-auto px-4">
             <div className="bg-hotel-blue/5 rounded-xl p-6 md:p-10">
@@ -26,16 +42,19 @@ const Index = () => {
                     ¡Regístrate y ahorra hasta un 30%!
                   </h2>
                   <p className="text-hotel-dark mb-4">
-                    Únete a Alojateya.com y obtén una noche gratis por cada 10 noches. Además, accede a precios exclusivos para miembros en miles de hoteles por todo el mundo.
+                    Únete a Aloyateya y obtén una noche gratis por cada 10 noches. Además, accede a precios exclusivos para miembros en miles de hoteles por todo el mundo.
                   </p>
-                  <button className="bg-hotel-red hover:bg-hotel-red/90 text-white font-medium py-2 px-6 rounded">
-                    Regístrate gratis
+                  <button 
+                    onClick={handleRegisterClick}
+                    className="bg-hotel-red hover:bg-hotel-red/90 text-white font-medium py-2 px-6 rounded"
+                  >
+                  Regístrate gratis
                   </button>
                 </div>
                 <div className="md:w-1/3">
                   <img 
-                    src="https://cdn.pixabay.com/photo/2020/05/22/08/17/breakfast-5204352_1280.jpg" 
-                    alt="imagen" 
+                    src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=500&auto=format&fit=crop" 
+                    alt="recompensa" 
                     className="rounded-lg shadow-md w-full"
                   />
                 </div>

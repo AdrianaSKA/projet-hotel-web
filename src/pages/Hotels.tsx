@@ -70,19 +70,6 @@ const Hotels = () => {
       
       <main className="flex-grow">
         
-        {isMobile && (
-          <div className="bg-white border-b border-hotel-light-gray p-4">
-            <div className="relative">
-              <Input
-                className="pl-4 pr-4 py-2 bg-hotel-light-bg"
-                placeholder="¿Adónde vas?"
-                readOnly
-                value={locationName || ""}
-              />
-            </div>
-          </div>
-        )}
-        
         
         <SearchDetailsBar 
           locationName={locationName} 

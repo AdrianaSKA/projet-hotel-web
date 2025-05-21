@@ -1,294 +1,226 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { useCart } from '@/contexts/CartContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/components/ui/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import {Table,TableBody,TableCaption,TableCell,TableHead,TableHeader,TableRow,} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CreditCard,Trash2,ShoppingCart,Check} from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
+import { Card } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { X, ShoppingCart, CreditCard } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const Cart = () => {
-  const { bookings, removeBooking, clearCart, totalItems } = useCart();
-  const { user, isLoggedIn } = useAuth();
+  const { bookings, removeBooking, purchaseBookings, clearCart } = useCart();
+  const { toast } = useToast();
   const navigate = useNavigate();
   
-  const [idNumber, setIdNumber] = useState('');
-  const [password, setPassword] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [idNumberError, setIdNumberError] = useState('');
-
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal">("card");
+  
   const totalAmount = bookings.reduce((total, booking) => total + booking.price, 0);
-
-  const handleRemoveBooking = (id: string, hotelName: string) => {
+  
+  const handleRemoveBooking = (id: string) => {
     removeBooking(id);
     toast({
       title: "Reserva eliminada",
-      description: `La reserva en ${hotelName} ha sido eliminada del carrito.`
+      description: "La reserva ha sido eliminada del carrito.",
     });
   };
-
-  const handleInitCheckout = () => {
-    if (!isLoggedIn) {
+  
+  const handleOpenPaymentDialog = () => {
+    if (bookings.length === 0) {
       toast({
-        title: "Inicie sesión primero",
-        description: "Debe iniciar sesión para continuar con la compra",
-        variant: "destructive"
+        title: "Carrito vacío",
+        description: "No tienes reservas en tu carrito.",
+        variant: "destructive",
       });
-      navigate('/login');
       return;
     }
-    
-    setShowConfirmation(true);
-    
-    setPasswordError('');
-    setIdNumberError('');
+    setIsPaymentDialogOpen(true);
   };
   
-  const handleIdNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    if (value === '' || /^[0-9\b]+$/.test(value)) {
-      setIdNumber(value);
-      setIdNumberError('');
-    } else {
-      setIdNumberError('');
-    }
-  };
+  const handlePurchase = () => {
 
-  const handleConfirmPurchase = (e: React.FormEvent) => {
-    e.preventDefault();
+    setIsPaymentDialogOpen(false);
     
-    setIsProcessing(true);
+    purchaseBookings();
+    toast({
+      title: "¡Compra realizada!",
+      description: `Pago realizado con ${paymentMethod === "card" ? "tarjeta" : "PayPal"}.`,
+    });
     
-    
-    if (!/^[0-9]+$/.test(idNumber)) {
-      setIdNumberError('');
-      setIsProcessing(false);
-      return;
-    }
-    
-    
-    setTimeout(() => {
-      
-      if (idNumber.length < 6) {
-        toast({
-          title: "Error de validación",
-          description: "El número de cédula debe tener al menos 6 caracteres",
-          variant: "destructive"
-        });
-        setIsProcessing(false);
-        return;
-      }
-      
-      
-      const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      const currentUser = storedUsers.find((u: any) => u.email === user?.email);
-      
-      if (!currentUser || currentUser.password !== password) {
-        setPasswordError('La contraseña es incorrecta');
-        toast({
-          title: "Error de validación",
-          description: "La contraseña ingresada no coincide con la contraseña de su cuenta",
-          variant: "destructive"
-        });
-        setIsProcessing(false);
-        return;
-      }
-      
-      
-      clearCart();
-      setIsProcessing(false);
-      setShowConfirmation(false);
-      
-      toast({
-        title: "¡Compra exitosa!",
-        description: "Tus reservas han sido confirmadas",
-      });
-      
-      
-      navigate('/');
-    }, 1500);
-  };
 
+    navigate('/my-reservations');
+  };
+  
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-hotel-light-bg">
       <Header />
       
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Mi carrito de reservas</h1>
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-hotel-blue mb-6">Carrito de Compras</h1>
         
-        {totalItems === 0 ? (
-          <div className="text-center py-12">
-            <ShoppingCart className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-            <h2 className="text-xl font-medium text-gray-500 mb-2">Tu carrito está vacío</h2>
-            <p className="text-gray-400 mb-6">No tienes ninguna reserva en tu carrito</p>
-            <Button onClick={() => navigate('/hotels')} variant="outline">
+        {bookings.length === 0 ? (
+          <Card className="p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <ShoppingCart size={64} className="text-gray-300" />
+            </div>
+            <h2 className="text-xl font-semibold text-hotel-dark mb-4">Tu carrito está vacío</h2>
+            <p className="text-gray-600 mb-6">
+              Añade reservas de hotel a tu carrito para continuar con tu compra.
+            </p>
+            <Button onClick={() => navigate('/hotels')} className="bg-hotel-blue hover:bg-hotel-blue/90">
               Explorar hoteles
             </Button>
-          </div>
+          </Card>
         ) : (
-          <>
-            <Table>
-              <TableCaption>Listado de tus reservas pendientes</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Hotel</TableHead>
-                  <TableHead>Fechas</TableHead>
-                  <TableHead>Huéspedes</TableHead>
-                  <TableHead className="text-right">Precio</TableHead>
-                  <TableHead className="w-[100px]">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bookings.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell className="font-medium">
-                      {booking.hotel.name}
-                    </TableCell>
-                    <TableCell>
-                      {format(booking.checkIn, "dd/MM/yyyy", { locale: es })} - 
-                      {format(booking.checkOut, "dd/MM/yyyy", { locale: es })}
-                      <div className="text-xs text-gray-500">{booking.nights} noches</div>
-                    </TableCell>
-                    <TableCell>
-                      {booking.guests.adults} adultos, {booking.guests.children} niños
-                      {booking.rooms > 1 && (
-                        <div className="text-xs text-gray-500">{booking.rooms} habitaciones</div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">${booking.price.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleRemoveBooking(booking.id, booking.hotel.name)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                <TableRow>
-                  <TableCell colSpan={3} className="text-right font-bold">
-                    Total
-                  </TableCell>
-                  <TableCell className="text-right font-bold">
-                    ${totalAmount.toFixed(2)}
-                  </TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            
-            <div className="mt-8 flex justify-end">
-              <Button 
-                onClick={handleInitCheckout} 
-                className="bg-hotel-blue hover:bg-hotel-blue/90 flex items-center gap-2"
-              >
-                <CreditCard size={18} />
-                Finalizar compra
-              </Button>
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="md:col-span-2">
+              <Card className="overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Hotel</TableHead>
+                      <TableHead>Fechas</TableHead>
+                      <TableHead>Habitaciones</TableHead>
+                      <TableHead>Precio</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {bookings.map((booking) => (
+                      <TableRow key={booking.id}>
+                        <TableCell className="font-medium">{booking.hotel.name}</TableCell>
+                        <TableCell>
+                          {format(new Date(booking.checkIn), "dd/MM/yyyy", { locale: es })} - 
+                          {format(new Date(booking.checkOut), "dd/MM/yyyy", { locale: es })}
+                          <div className="text-xs text-gray-500">({booking.nights} noches)</div>
+                        </TableCell>
+                        <TableCell>{booking.rooms}</TableCell>
+                        <TableCell>${booking.price.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-gray-500 hover:text-red-500"
+                            onClick={() => handleRemoveBooking(booking.id)}
+                          >
+                            <X size={18} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
             </div>
             
-            {showConfirmation && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
-                  <h2 className="text-xl font-bold mb-4">Confirmar compra</h2>
-                  
-                  <div className="bg-gray-50 p-4 rounded-md mb-4">
-                    <div className="flex justify-between mb-2">
-                      <span>Total a pagar:</span>
-                      <span className="font-bold">${totalAmount.toFixed(2)}</span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {totalItems} {totalItems === 1 ? 'reserva' : 'reservas'}
+            <div>
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Resumen del pedido</h2>
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span>${totalAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Impuestos</span>
+                    <span>$0.00</span>
+                  </div>
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex justify-between font-semibold">
+                      <span>Total</span>
+                      <span>${totalAmount.toFixed(2)}</span>
                     </div>
                   </div>
-                  
-                  <form onSubmit={handleConfirmPurchase}>
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="idNumber" className="block text-sm font-medium mb-1">
-                          Número de Cédula
-                        </label>
-                        <Input
-                          id="idNumber"
-                          value={idNumber}
-                          onChange={handleIdNumberChange}
-                          required
-                          placeholder="Ingresa tu número de cédula"
-                          className={idNumberError ? "border-red-500" : ""}
-                        />
-                        {idNumberError && (
-                          <p className="text-sm text-red-500 mt-1">{idNumberError}</p>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="password" className="block text-sm font-medium mb-1">
-                          Contraseña de tu cuenta
-                        </label>
-                        <Input
-                          id="password"
-                          type="password"
-                          value={password}
-                          onChange={(e) => {
-                            setPassword(e.target.value);
-                            setPasswordError('');
-                          }}
-                          required
-                          placeholder="Ingresa tu contraseña"
-                          className={passwordError ? "border-red-500" : ""}
-                        />
-                        {passwordError && (
-                          <p className="text-sm text-red-500 mt-1">{passwordError}</p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => setShowConfirmation(false)}
-                        disabled={isProcessing}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        className="flex-1 bg-hotel-blue hover:bg-hotel-blue/90"
-                        disabled={isProcessing}
-                      >
-                        {isProcessing ? (
-                          <span className="flex items-center gap-1">
-                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                            Procesando...
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <Check size={18} />
-                            Confirmar compra
-                          </span>
-                        )}
-                      </Button>
-                    </div>
-                  </form>
                 </div>
-              </div>
-            )}
-          </>
+                
+                <div className="space-y-3">
+                  <Button 
+                    onClick={handleOpenPaymentDialog}
+                    className="w-full bg-hotel-blue hover:bg-hotel-blue/90"
+                  >
+                    Completar compra
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      clearCart();
+                      toast({
+                        title: "Carrito vaciado",
+                        description: "Se han eliminado todas las reservas del carrito.",
+                      });
+                    }}
+                  >
+                    Vaciar carrito
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
         )}
+        
+        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Método de pago</DialogTitle>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <RadioGroup 
+                value={paymentMethod} 
+                onValueChange={(value) => setPaymentMethod(value as "card" | "paypal")}
+                className="space-y-4"
+              >
+                <div className="flex items-center space-x-2 rounded-lg border p-4">
+                  <RadioGroupItem value="card" id="card" />
+                  <label 
+                    htmlFor="card" 
+                    className="flex flex-1 cursor-pointer items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5" />
+                      <span>Tarjeta de crédito/débito</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <img src="https://icrono.com/wp-content/uploads/2022/05/png-american-express-logo-png-Visa-Mastercard-American-Express-Logo.png" alt="tarjetas" className="h-10" />
+                    </div>
+                  </label>
+                </div>
+                
+                <div className="flex items-center space-x-2 rounded-lg border p-4">
+                  <RadioGroupItem value="paypal" id="paypal" />
+                  <label 
+                    htmlFor="paypal" 
+                    className="flex flex-1 cursor-pointer items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center bg-[#003087] text-white font-bold rounded-sm w-5 h-5 text-xs">P</div>
+                      <span>PayPal</span>
+                    </div>
+                    <div>
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" alt="PayPal" className="h-10" />
+                    </div>
+                  </label>
+                </div>
+              </RadioGroup>
+              
+              <Button 
+                onClick={handlePurchase}
+                className="w-full mt-6 bg-hotel-blue hover:bg-hotel-blue/90"
+              >
+                {paymentMethod === "card" ? "Pagar con tarjeta" : "Pagar con PayPal"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
       
       <Footer />

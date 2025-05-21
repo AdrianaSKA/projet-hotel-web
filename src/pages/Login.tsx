@@ -28,8 +28,8 @@ const Login = () => {
   
   
   const demoAccounts = [
-    { email: 'demo@ecohotel.com', password: 'demo123' },
-    { email: 'test@ecohotel.com', password: 'test123' }
+    { email: 'hk@gmail.com', password: '123456' },
+    { email: 'aj@gmail.com', password: '123456' }
   ];
 
   const form = useForm<LoginFormValues>({
